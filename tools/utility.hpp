@@ -265,4 +265,32 @@ void notifyPIM(ObjectMap&& objectMap)
                   << e.what() << std::endl;
     }
 }
+
+/**
+ * @brief API to create a PEL
+ *
+ * @return true on success, otherwise returns false
+ */
+bool createPEL(const std::string& i_message) noexcept
+{
+    bool l_rc{true};
+    try
+    {
+        auto l_bus = sdbusplus::bus::new_default();
+        auto l_method =
+            l_bus.new_method_call("xyz.openbmc_project.Logging",
+                                  "/xyz/openbmc_project/logging",
+                                  "xyz.openbmc_project.Logging.Create", "Create");
+
+        const std::map<std::string, std::string> l_additionalData{};
+        l_method.append(i_message, "xyz.openbmc_project.Logging.Entry.Level.Warning", l_additionalData);
+        l_bus.call(l_method);
+    }
+    catch(const std::exception& l_ex)
+    {
+        l_rc = false;
+        std::cerr << "Failed to create PEL. Error: " << std::string(l_ex.what()) << std::endl;
+    }
+    return l_rc;
+}
 } // namespace utility
